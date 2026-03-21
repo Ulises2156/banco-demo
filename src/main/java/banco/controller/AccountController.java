@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.net.URI;
 import java.util.List;
 
@@ -41,4 +42,28 @@ public class AccountController {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
+    @PostMapping("/{id}/deposit")
+    public ResponseEntity<AccountDTO> deposit(
+            @PathVariable Long id,
+            @RequestParam BigDecimal amount){
+        return ResponseEntity.ok(service.depoist(id, amount));
+    }
+    @PostMapping("/{id}/withdraw")
+    public ResponseEntity<AccountDTO> withdraw(
+            @PathVariable Long id,
+            @RequestParam BigDecimal amount){
+
+        return ResponseEntity.ok(service.withdraw(id, amount));
+    }
+
+    @PostMapping("/transfer")
+    public ResponseEntity<String> transfer(
+            @RequestParam Long fromId,
+            @RequestParam Long toId,
+            @RequestParam BigDecimal amount) {
+
+        service.transfer(fromId, toId, amount);
+        return ResponseEntity.ok("Transferencia realizada correctamente");
+    }
+
 }
