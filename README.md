@@ -12,8 +12,3 @@ API REST desarrollada con Spring Boot que simula operaciones bancarias.
 - Java 21
 - Spring Boot
 - PostgreSQL
-
-## Cómo correr el proyecto
-1. Clonar repo
-2. Configurar DB
-3. Ejecutar aplicación
