@@ -30,6 +30,10 @@ public class Account {
     @Version
     private Long version;
 
+    @ManyToOne(optional = false)
+    @JoinColumn(name ="user_id")
+    private User user;
+
     public Account(){}
 
     public Account(String accountNumber, String ownerName, String currency, BigDecimal balance){
@@ -37,6 +41,13 @@ public class Account {
         this.ownerName = ownerName;
         this.currency = currency;
         this.balance = balance;
+    }
+
+    public User getUser() {
+        return user;
+    }
+    public void setUser(User user){
+        this.user = user;
     }
 
     public Long getId() {return id;}

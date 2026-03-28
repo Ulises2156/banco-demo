@@ -1,46 +1,53 @@
 package banco.security;
 
+import banco.entity.User;
+import banco.repository.UserRepository;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 @Component
-public class JwtFilter implements Filter {
+public class JwtFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
+    private final UserRepository userRepo;
 
-    public JwtFilter(JwtService jwtService) {
+    public JwtFilter(JwtService jwtService, UserRepository userRepo) {
         this.jwtService = jwtService;
+        this.userRepo = userRepo;
     }
 
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws IOException, ServletException {
 
-        HttpServletRequest req = (HttpServletRequest) request;
-
-        String header = req.getHeader("Authorization");
+        String header = request.getHeader("Authorization");
 
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
 
             try {
             String username = jwtService.extractUsername(token);
-            // intento de validar y dejarlo pasar
-            UsernamePasswordAuthenticationToken auth =
-                    new UsernamePasswordAuthenticationToken(
-                            username,
-                            null,
-                            Collections.emptyList()
-                    );
-            SecurityContextHolder.getContext().setAuthentication(auth);
-
+            User user = userRepo.findByUsername(username).orElse(null);
+            if (user != null) {
+                List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(user.getRole()));
+                UsernamePasswordAuthenticationToken auth =
+                        new UsernamePasswordAuthenticationToken(
+                                username,
+                                null,
+                                authorities
+                        );
+                SecurityContextHolder.getContext().setAuthentication(auth);
+            }
             } catch (Exception e) {
                 System.out.println("Invalid token" +e.getMessage());
             }
@@ -48,6 +55,3 @@ public class JwtFilter implements Filter {
         chain.doFilter(request, response);
     }
 }
-
-
-

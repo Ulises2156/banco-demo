@@ -1,0 +1,50 @@
+.dashboard {
+  font-family: Arial, sans-serif;
+}
+
+.dashboard-header {
+  background-color: #007bff;
+  color: white;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logout-btn {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.logout-btn:hover {
+  background-color: #c82333;
+}
+
+main {
+  padding: 20px;
+}
+
+.accounts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.account-card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  background-color: #f9f9f9;
+}
+
+.account-card h3 {
+  margin-top: 0;
+}
+
+.error {
+  color: red;
+}

@@ -41,4 +41,9 @@ build/
 
 #Configuración sensible
 application-local.yml
-.env
+.
+# Frontend
+node_modules/
+banco-frontend/node_modules/
+dist/
+build/

@@ -2,9 +2,11 @@ package banco.controller;
 
 import banco.dto.AccountDTO;
 import banco.service.AccountService;
+import banco.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
 
 import java.math.BigDecimal;
 import java.net.URI;
@@ -18,17 +20,23 @@ public class AccountController {
     public AccountController (AccountService service) {this.service = service; }
 
     @GetMapping
-    public ResponseEntity<List<AccountDTO>> getAll(){
-        return ResponseEntity.ok(service.findAll());
+    public ResponseEntity<List<AccountDTO>> getAll(Authentication auth){
+
+        String username = auth.getName();
+
+        return ResponseEntity.ok(service.findAll(username));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<AccountDTO> getOne(@PathVariable Long id){
         return ResponseEntity.ok(service.findById(id));
     }
+
     @PostMapping
-    public ResponseEntity<AccountDTO> create(@Valid @RequestBody AccountDTO dto) {
-        AccountDTO created = service.create(dto);
+    public ResponseEntity<AccountDTO> create(@Valid @RequestBody AccountDTO dto, Authentication auth) {
+
+    String username = auth.getName();
+        AccountDTO created = service.create(dto, username);
         return ResponseEntity.created(URI.create("/api/accounts/" + created.getId())).body(created);
 
     }

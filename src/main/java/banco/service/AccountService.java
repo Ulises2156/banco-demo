@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import banco.repository.TransactionRepository;
 import banco.entity.Transaction;
+import banco.repository.UserRepository;
+import banco.entity.User;
 
 
 import java.math.BigDecimal;
@@ -20,15 +22,29 @@ public class AccountService {
 
     private final AccountRepository repo;
     private final TransactionRepository transactionRepo;
+    private  final UserRepository userRepo;
 
-    public AccountService(AccountRepository repo, TransactionRepository transactionRepo)
+    public AccountService(AccountRepository repo, TransactionRepository transactionRepo, UserRepository userRepo)
     {
         this.repo = repo;
         this.transactionRepo = transactionRepo;
+        this.userRepo = userRepo;
     }
 
-    public List<AccountDTO> findAll(){
-        return repo.findAll().stream().map(this::toDTO).collect(Collectors.toList());
+    public List<AccountDTO> findAll(String username){
+
+        User user = userRepo.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        List<Account> accounts;
+
+        if ("ROLE_ADMIN".equals(user.getRole())){
+            accounts = repo.findAll();
+        }else {
+            accounts = repo.findByUserId(user.getId());
+        }
+
+        return accounts.stream().map(this::toDTO).collect(Collectors.toList());
 
     }
     public AccountDTO findById(Long id){
@@ -36,8 +52,11 @@ public class AccountService {
             return toDTO(acc);
     }
     @Transactional
-    public AccountDTO create (AccountDTO dto){
+    public AccountDTO create (AccountDTO dto, String username){
         //intentar generar el número de cueta
+        User user = userRepo.findByUsername(username)
+                .orElseThrow(() -> new  RuntimeException("Usuario no encontrado"));
+
         String acctNum = dto.getAccountNumber();
         if (acctNum == null || acctNum.isBlank()) {
             acctNum = "ACCT-" + System.currentTimeMillis();
@@ -46,6 +65,8 @@ public class AccountService {
             throw new IllegalArgumentException("Account number already exists");
         }
         Account account = new Account(acctNum, dto.getOwnerName(), dto.getCurrency(), dto.getBalance() == null ? BigDecimal.ZERO : dto.getBalance());
+
+        account.setUser(user);
         Account saved = repo.save(account);
         return toDTO(saved);
     }
@@ -80,7 +101,7 @@ public class AccountService {
 
             acc.setBalance(acc.getBalance().add(amount));
 
-            Transaction tx = new Transaction(acc, amount, "DEPOIST");
+            Transaction tx = new Transaction(acc, amount, "DEPOSIT");
             transactionRepo.save(tx);
 
             return toDTO(repo.save(acc));
@@ -92,7 +113,7 @@ public class AccountService {
             throw new IllegalArgumentException("El monto debe ser mayor a 0");
         }
         Account acc = repo.findById(id)
-                .orElseThrow(()-> new ResourceNotFoundException("Account not found: "));
+                .orElseThrow(()-> new ResourceNotFoundException("Account not found: " + id));
 
         if(acc.getBalance().compareTo(amount) < 0){
             throw new IllegalArgumentException("Fondos insuficientes");
